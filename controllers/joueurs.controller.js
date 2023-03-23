@@ -1,26 +1,16 @@
-const Joueur = require("../models/joueur.model");
 const User = require("../models/user.model");
 
 const addPlayerToFavoris = async (req, res) => {
-  const { userId, playerName } = req.body;
+  const { userId, nomJoueur, clubJoueur } = req.body;
 
   try {
-    // Find the user by ID
     const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).send({ message: "User not found." });
     }
 
-    // Find the player by name
-    const player = await Player.findOne({ name: playerName });
-
-    if (!player) {
-      return res.status(404).send({ message: "Player not found." });
-    }
-
-    // Add the player to the user's favorite players array
-    user.joueursFavoris.push(playerName);
+    user.joueursFavoris.push({ nom: nomJoueur, club: clubJoueur });
     await user.save();
 
     res.send({ message: "Player added to favorites." });
@@ -31,34 +21,24 @@ const addPlayerToFavoris = async (req, res) => {
 };
 
 const removePlayerFromFavoris = async (req, res) => {
-  async (req, res) => {
-    const { userId, playerName } = req.body;
+  const { userId, playerName, club } = req.body;
 
-    try {
-      // Find the user by ID
-      const user = await User.findById(userId);
+  try {
+    const user = await User.findById(userId);
 
-      if (!user) {
-        return res.status(404).send({ message: "User not found." });
-      }
-
-      // Remove the player from the user's favorite players array
-      const index = user.joueursFavoris.indexOf(playerName);
-      if (index > -1) {
-        user.joueursFavoris.splice(index, 1);
-        await user.save();
-      } else {
-        return res
-          .status(404)
-          .send({ message: "Player not found in favorites." });
-      }
-
-      res.send({ message: "Player removed from favorites." });
-    } catch (error) {
-      console.log(error);
-      res.status(500).send({ message: "Internal server error." });
+    if (!user) {
+      return res.status(404).send({ message: "User not found." });
     }
-  };
+
+    // Supprime le joueur du tableau joueursFavoris
+    user.joueursFavoris.pull({ nom: playerName, club: club });
+    await user.save();
+
+    res.send({ message: "Player removed from favorites." });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: "Internal server error.", error });
+  }
 };
 
 const getPlayersByUser = async (req, res) => {
@@ -68,21 +48,25 @@ const getPlayersByUser = async (req, res) => {
     if (!user) {
       return res.status(404).send({ message: "User not found." });
     }
-
-    const players = await Joueur.find({
-      name: { $in: user.joueursFavoris },
-    });
-
-    res.send({ data: players });
+    res.send({ data: user.joueursFavoris });
   } catch (error) {
     console.log(error);
     res.status(500).send({ message: "Internal server error." });
   }
 };
+const checkIfPlayerExist = async (req, res) => {
+  const { userId, nomJoueur } = req.params;
 
-const checkifPlayerExist = async (req, res) => {
   try {
-    const player = await Joueur.findOne({ name: req.params.playerName });
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send({ message: "User not found." });
+    }
+
+    const player = user.joueursFavoris.find(
+      (joueur) => joueur.nom === nomJoueur
+    );
 
     if (!player) {
       return res.status(404).send({ message: "Player not found." });
@@ -91,7 +75,6 @@ const checkifPlayerExist = async (req, res) => {
     res.send({ data: player });
   } catch (error) {
     console.log(error);
-
     res.status(500).send({ message: "Internal server error." });
   }
 };
@@ -100,5 +83,5 @@ module.exports = {
   addPlayerToFavoris,
   removePlayerFromFavoris,
   getPlayersByUser,
-  checkifPlayerExist,
+  checkIfPlayerExist,
 };

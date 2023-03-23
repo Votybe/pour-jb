@@ -29,6 +29,7 @@ const signin = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Internal server error.",
+      error,
     });
   }
 };
