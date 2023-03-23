@@ -12,4 +12,7 @@ router.post(
   joueurController.removePlayerFromFavoris
 );
 
+router.get("/get-favorite-players", joueurController.getFavoritePlayers);
+router.get("/check-player-exist", joueurController.checkifPlayerExist);
+
 module.exports = router;

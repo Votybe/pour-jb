@@ -80,8 +80,25 @@ const getPlayersByUser = async (req, res) => {
   }
 };
 
+const checkifPlayerExist = async (req, res) => {
+  try {
+    const player = await Joueur.findOne({ name: req.params.playerName });
+
+    if (!player) {
+      return res.status(404).send({ message: "Player not found." });
+    }
+
+    res.send({ data: player });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).send({ message: "Internal server error." });
+  }
+};
+
 module.exports = {
   addPlayerToFavoris,
   removePlayerFromFavoris,
   getPlayersByUser,
+  checkifPlayerExist,
 };
