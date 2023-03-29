@@ -1,7 +1,7 @@
 const User = require("../models/user.model");
 
 const addPlayerToFavoris = async (req, res) => {
-  const { userId, nomJoueur, clubJoueur } = req.body;
+  const { userId, nomJoueur } = req.body;
 
   try {
     const user = await User.findById(userId);
@@ -10,8 +10,13 @@ const addPlayerToFavoris = async (req, res) => {
       return res.status(404).send({ message: "User not found." });
     }
 
-    user.joueursFavoris.push({ nom: nomJoueur, club: clubJoueur });
+    user.joueursFavoris.push({ nom: nomJoueur });
     await user.save();
+
+    if (user.joueursFavoris.includes(nomJoueur)) {
+      return res.status(400).send({ message: "Player already in favorites." });
+    }
+    console.log(userId);
 
     res.send({ message: "Player added to favorites." });
   } catch (error) {
@@ -21,7 +26,7 @@ const addPlayerToFavoris = async (req, res) => {
 };
 
 const removePlayerFromFavoris = async (req, res) => {
-  const { userId, playerName, club } = req.body;
+  const { userId, playerName } = req.body;
 
   try {
     const user = await User.findById(userId);
@@ -31,7 +36,7 @@ const removePlayerFromFavoris = async (req, res) => {
     }
 
     // Supprime le joueur du tableau joueursFavoris
-    user.joueursFavoris.pull({ nom: playerName, club: club });
+    user.joueursFavoris.pull({ nom: playerName });
     await user.save();
 
     res.send({ message: "Player removed from favorites." });
@@ -54,6 +59,7 @@ const getPlayersByUser = async (req, res) => {
     res.status(500).send({ message: "Internal server error." });
   }
 };
+
 const checkIfPlayerExist = async (req, res) => {
   const { userId, nomJoueur } = req.params;
 
